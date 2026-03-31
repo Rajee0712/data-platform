@@ -2,6 +2,11 @@
 
 ![CI](https://github.com/Rajee0712/data-platform/actions/workflows/ci.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/Rajee0712/data-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/Rajee0712/data-platform)
+![Python](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/Rajee0712/data-platform/main/pyproject.toml&query=project.requires-python&label=python)
+![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/Rajee0712/data-platform/main/pyproject.toml&query=project.version&label=version)
+![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
+![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 
 A production-grade ELT pipeline that fetches hourly weather data from the
