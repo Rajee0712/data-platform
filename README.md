@@ -1,5 +1,7 @@
 # Weather Pipeline
 
+[![Coverage](https://codecov.io/gh/Rajee0712/data-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/Rajee0712/data-platform)
+
 A production-grade ELT pipeline that fetches hourly weather data from the
 [Open-Meteo API](https://open-meteo.com/) for a set of cities and loads it into DuckDB.
 

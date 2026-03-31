@@ -34,6 +34,11 @@ jobs:
       - name: Test
         run: uv run pytest
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: UnitTest Coverage summary
         run: |
           echo "## UnitTest Coverage Report" >> $GITHUB_STEP_SUMMARY
