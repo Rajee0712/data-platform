@@ -1,0 +1,51 @@
+"""Unit tests for the pipeline orchestrator."""
+
+from unittest.mock import MagicMock, patch
+
+from weather_pipeline.pipeline import main
+
+
+@patch("weather_pipeline.pipeline.extract_all")
+@patch("weather_pipeline.pipeline.transform_all")
+@patch("weather_pipeline.pipeline.load")
+def test_main_calls_etl_in_order(mock_load, mock_transform, mock_extract):
+    """Pipeline should call extract → transform → load in order."""
+    mock_extract.return_value = [MagicMock()]
+    mock_transform.return_value = [MagicMock()]
+    mock_load.return_value = 24
+
+    main()
+
+    mock_extract.assert_called_once()
+    mock_transform.assert_called_once_with(mock_extract.return_value)
+    mock_load.assert_called_once_with(mock_transform.return_value)
+
+
+@patch("weather_pipeline.pipeline.extract_all")
+@patch("weather_pipeline.pipeline.transform_all")
+@patch("weather_pipeline.pipeline.load")
+def test_main_passes_cities_from_settings(mock_load, mock_transform, mock_extract):
+    """Pipeline should pass cities from settings to extract_all."""
+    mock_extract.return_value = []
+    mock_transform.return_value = []
+    mock_load.return_value = 0
+
+    main()
+
+    called_cities = mock_extract.call_args[0][0]
+    assert isinstance(called_cities, list)
+    assert len(called_cities) > 0
+
+
+@patch("weather_pipeline.pipeline.extract_all")
+@patch("weather_pipeline.pipeline.transform_all")
+@patch("weather_pipeline.pipeline.load")
+def test_main_empty_results(mock_load, mock_transform, mock_extract):
+    """Pipeline should handle no data gracefully."""
+    mock_extract.return_value = []
+    mock_transform.return_value = []
+    mock_load.return_value = 0
+
+    main()  # should not raise
+
+    mock_load.assert_called_once_with([])

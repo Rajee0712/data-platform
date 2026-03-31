@@ -1,0 +1,55 @@
+[project]
+name = "weather-pipeline"
+version = "0.1.0"
+description = "Weather ELT pipeline: Open-Meteo API → DuckDB"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "duckdb>=1.5.1",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.3",
+    "tenacity>=9.1.4",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.1.0",
+    "pytest-httpx>=0.36.0",
+    "ruff>=0.15.8",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["weather_pipeline"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=weather_pipeline --cov-report=term-missing"
+pythonpath = ["src"]
+
+[tool.coverage.run]
+omit = ["tests/*"]
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+weather-pipeline = "weather_pipeline.pipeline:main"
