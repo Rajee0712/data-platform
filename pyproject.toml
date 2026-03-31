@@ -35,7 +35,7 @@ known-first-party = ["weather_pipeline"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=weather_pipeline --cov-report=term-missing"
+addopts = "--cov=weather_pipeline --cov-report=term-missing --cov-report=xml"
 pythonpath = ["src"]
 
 [tool.coverage.run]

@@ -30,3 +30,8 @@ jobs:
 
       - name: Test
         run: uv run pytest
+
+      - name: Coverage summary
+        run: |
+          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+          uv run python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
