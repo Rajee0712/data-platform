@@ -6,15 +6,18 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   ci:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
 
       - name: Set up Python
         run: uv python install
@@ -30,3 +33,13 @@ jobs:
 
       - name: Test
         run: uv run pytest
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: UnitTest Coverage summary
+        run: |
+          echo "## UnitTest Coverage Report" >> $GITHUB_STEP_SUMMARY
+          uv run python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
