@@ -45,8 +45,9 @@ jobs:
           uv run python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
 
       - name: Sync README to Wiki
-        uses: nicenemo/sync-wiki-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          source: README.md
-          destination: Home.md
+        if: github.ref == 'refs/heads/main'
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        env:
+            WIKI_DIR: wiki/
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GH_NAME: Rajee0712
