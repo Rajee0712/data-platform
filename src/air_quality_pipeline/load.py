@@ -23,16 +23,16 @@ def create_table(conn: duckdb.DuckDBPyConnection) -> None:
     conn.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
     conn.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.air_quality_records (
-            city                    VARCHAR,
-            timestamp               TIMESTAMP,
-            date                    DATE,
-            parameter               VARCHAR,
-            value                   DOUBLE,
-            unit                    VARCHAR,
-            coordinates_latitude    DOUBLE,
-            coordinates_longitude   DOUBLE,
-            ingested_at             TIMESTAMP,
-            PRIMARY KEY (city, timestamp, parameter)
+            city                VARCHAR,
+            timestamp           TIMESTAMP,
+            date                DATE,
+            pm2_5               DOUBLE,
+            pm10                DOUBLE,
+            carbon_monoxide     DOUBLE,
+            nitrogen_dioxide    DOUBLE,
+            ozone               DOUBLE,
+            ingested_at         TIMESTAMP,
+            PRIMARY KEY (city, timestamp)
         )
     """)
     logger.debug("Schema and table air_quality.air_quality_records ready")
@@ -42,7 +42,7 @@ def upsert_records(
     conn: duckdb.DuckDBPyConnection,
     records: list[AirQualityRecord],
 ) -> int:
-    """Insert records, replacing existing ones with same city+timestamp+parameter."""
+    """Insert records, replacing existing ones with same city+timestamp."""
     if not records:
         logger.warning("No records to load")
         return 0
@@ -52,11 +52,11 @@ def upsert_records(
             r.city,
             r.timestamp,
             r.date,
-            r.parameter,
-            r.value,
-            r.unit,
-            r.coordinates_latitude,
-            r.coordinates_longitude,
+            r.pm2_5,
+            r.pm10,
+            r.carbon_monoxide,
+            r.nitrogen_dioxide,
+            r.ozone,
             r.ingested_at,
         )
         for r in records
@@ -65,8 +65,8 @@ def upsert_records(
     conn.executemany(
         f"""
         INSERT OR REPLACE INTO {SCHEMA}.air_quality_records
-            (city, timestamp, date, parameter, value, unit,
-             coordinates_latitude, coordinates_longitude, ingested_at)
+            (city, timestamp, date, pm2_5, pm10, carbon_monoxide,
+             nitrogen_dioxide, ozone, ingested_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """,
         rows,

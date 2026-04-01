@@ -17,25 +17,25 @@ def parse_air_quality_records(
 ) -> list[AirQualityRecord]:
     """Convert a raw API response into a list of typed AirQualityRecord rows."""
     records = []
+    hourly = raw.hourly
+    timestamps = hourly.get("time", [])
 
-    for measurement in raw.results:
+    for i, ts in enumerate(timestamps):
         try:
-            dt = datetime.fromisoformat(
-                measurement["date"]["utc"].replace("Z", "+00:00")
-            )
+            dt = datetime.fromisoformat(ts)
             record = AirQualityRecord(
                 city=coords.city,
                 timestamp=dt,
                 date=dt.date(),
-                parameter=measurement["parameter"],
-                value=measurement["value"],
-                unit=measurement["unit"],
-                coordinates_latitude=measurement["coordinates"]["latitude"],
-                coordinates_longitude=measurement["coordinates"]["longitude"],
+                pm2_5=hourly.get("pm2_5", [None])[i],
+                pm10=hourly.get("pm10", [None])[i],
+                carbon_monoxide=hourly.get("carbon_monoxide", [None])[i],
+                nitrogen_dioxide=hourly.get("nitrogen_dioxide", [None])[i],
+                ozone=hourly.get("ozone", [None])[i],
             )
             records.append(record)
         except Exception as e:
-            logger.warning(f"Skipping measurement for {coords.city}: {e}")
+            logger.warning(f"Skipping record {i} for {coords.city}: {e}")
 
     logger.info(f"Transformed {len(records)} records for {coords.city}")
     return records

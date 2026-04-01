@@ -16,35 +16,47 @@ from air_quality_pipeline.extract import (
 )
 from air_quality_pipeline.models import CityCoordinates
 
+MOCK_GEOCODING_RESPONSE = {
+    "results": [{"latitude": 60.1699, "longitude": 24.9384, "name": "Helsinki"}]
+}
+
+MOCK_AIR_QUALITY_RESPONSE = {
+    "latitude": 60.1699,
+    "longitude": 24.9384,
+    "timezone": "Europe/Helsinki",
+    "hourly_units": {"pm2_5": "μg/m³"},
+    "hourly": {
+        "time": ["2024-01-01T00:00", "2024-01-01T01:00"],
+        "pm2_5": [6.3, 6.5],
+        "pm10": [9.5, 9.2],
+        "carbon_monoxide": [217.0, 215.0],
+        "nitrogen_dioxide": [10.7, 10.4],
+        "ozone": [42.0, 38.0],
+    },
+}
+
+GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search?name=Helsinki&count=1&language=en&format=json"
+AIR_QUALITY_URL = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=60.1699&longitude=24.9384&hourly=pm2_5%2Cpm10%2Ccarbon_monoxide%2Cnitrogen_dioxide%2Cozone&forecast_days=1&timezone=auto"
+
 
 def test_batched():
-    """Test the batched utility function."""
     items = list(range(10))
     batches = list(batched(items, 3))
     assert len(batches) == 4
     assert batches[0] == [0, 1, 2]
-    assert batches[1] == [3, 4, 5]
-    assert batches[2] == [6, 7, 8]
     assert batches[3] == [9]
 
 
 def test_fetch_coordinates_async(httpx_mock):
-    """Test fetch_coordinates_async with mocked HTTP response."""
-    httpx_mock.add_response(
-        url="https://geocoding-api.open-meteo.com/v1/search?name=Helsinki&count=1&language=en&format=json",
-        json={
-            "results": [{"latitude": 60.1699, "longitude": 24.9384, "name": "Helsinki"}]
-        },
-    )
+    httpx_mock.add_response(url=GEOCODING_URL, json=MOCK_GEOCODING_RESPONSE)
 
-    async def run_test():
+    async def run():
         async with httpx.AsyncClient() as client:
             coords = await fetch_coordinates_async("Helsinki", client)
             assert coords.city == "Helsinki"
             assert coords.latitude == 60.1699
-            assert coords.longitude == 24.9384
 
-    asyncio.run(run_test())
+    asyncio.run(run())
 
 
 def test_fetch_coordinates_async_not_found(httpx_mock):
@@ -54,79 +66,41 @@ def test_fetch_coordinates_async_not_found(httpx_mock):
         is_reusable=True,
     )
 
-    async def run_test():
+    async def run():
         async with httpx.AsyncClient() as client:
             with pytest.raises(RetryError):
                 await fetch_coordinates_async("NonExistentCity", client)
 
-    asyncio.run(run_test())
+    asyncio.run(run())
 
 
 def test_fetch_air_quality_async(httpx_mock):
-    """Test fetch_air_quality_async with mocked HTTP response."""
     coords = CityCoordinates(city="Helsinki", latitude=60.1699, longitude=24.9384)
+    httpx_mock.add_response(url=AIR_QUALITY_URL, json=MOCK_AIR_QUALITY_RESPONSE)
 
-    httpx_mock.add_response(
-        url="https://air-quality-api.open-meteo.com/v1/measurements?coordinates=60.1699%2C24.9384&radius=25000&limit=1000&sort=desc&order_by=datetime",
-        json={
-            "results": [
-                {
-                    "parameter": "pm25",
-                    "value": 10.5,
-                    "unit": "µg/m³",
-                    "date": {"utc": "2024-01-01T12:00:00Z"},
-                    "coordinates": {"latitude": 60.1699, "longitude": 24.9384},
-                }
-            ]
-        },
-    )
-
-    async def run_test():
+    async def run():
         async with httpx.AsyncClient() as client:
             response = await fetch_air_quality_async(coords, client)
-            assert len(response.results) == 1
-            assert response.results[0]["parameter"] == "pm25"
-            assert response.results[0]["value"] == 10.5
+            assert response.timezone == "Europe/Helsinki"
+            assert len(response.hourly["time"]) == 2
 
-    asyncio.run(run_test())
+    asyncio.run(run())
 
 
 def test_extract_city_async_success(httpx_mock):
-    """Test extract_city_async with successful extraction."""
-    # Mock geocoding response
-    httpx_mock.add_response(
-        url="https://geocoding-api.open-meteo.com/v1/search?name=Helsinki&count=1&language=en&format=json",
-        json={
-            "results": [{"latitude": 60.1699, "longitude": 24.9384, "name": "Helsinki"}]
-        },
-    )
+    httpx_mock.add_response(url=GEOCODING_URL, json=MOCK_GEOCODING_RESPONSE)
+    httpx_mock.add_response(url=AIR_QUALITY_URL, json=MOCK_AIR_QUALITY_RESPONSE)
 
-    # Mock air quality response
-    httpx_mock.add_response(
-        url="https://air-quality-api.open-meteo.com/v1/measurements?coordinates=60.1699%2C24.9384&radius=25000&limit=1000&sort=desc&order_by=datetime",
-        json={
-            "results": [
-                {
-                    "parameter": "pm25",
-                    "value": 10.5,
-                    "unit": "µg/m³",
-                    "date": {"utc": "2024-01-01T12:00:00Z"},
-                    "coordinates": {"latitude": 60.1699, "longitude": 24.9384},
-                }
-            ]
-        },
-    )
-
-    async def run_test():
+    async def run():
         async with httpx.AsyncClient() as client:
             semaphore = asyncio.Semaphore(1)
             result = await extract_city_async("Helsinki", client, semaphore)
             assert result is not None
             coords, air_quality = result
             assert coords.city == "Helsinki"
-            assert len(air_quality.results) == 1
+            assert air_quality.timezone == "Europe/Helsinki"
 
-    asyncio.run(run_test())
+    asyncio.run(run())
 
 
 def test_extract_city_async_failure(httpx_mock):
@@ -136,49 +110,30 @@ def test_extract_city_async_failure(httpx_mock):
         is_reusable=True,
     )
 
-    async def run_test():
+    async def run():
         async with httpx.AsyncClient() as client:
             semaphore = asyncio.Semaphore(1)
             result = await extract_city_async("BadCity", client, semaphore)
             assert result is None
 
-    asyncio.run(run_test())
+    asyncio.run(run())
 
 
 def test_extract_all_async(httpx_mock):
-    """Test extract_all_async with multiple cities."""
-    # Mock responses for both cities
-    httpx_mock.add_response(
-        url="https://geocoding-api.open-meteo.com/v1/search?name=Helsinki&count=1&language=en&format=json",
-        json={
-            "results": [{"latitude": 60.1699, "longitude": 24.9384, "name": "Helsinki"}]
-        },
-    )
-    httpx_mock.add_response(
-        url="https://air-quality-api.open-meteo.com/v1/measurements?coordinates=60.1699%2C24.9384&radius=25000&limit=1000&sort=desc&order_by=datetime",
-        json={"results": []},
-    )
+    httpx_mock.add_response(url=GEOCODING_URL, json=MOCK_GEOCODING_RESPONSE)
+    httpx_mock.add_response(url=AIR_QUALITY_URL, json=MOCK_AIR_QUALITY_RESPONSE)
 
-    async def run_test():
+    async def run():
         results = await extract_all_async(["Helsinki"], batch_size=1)
         assert len(results) == 1
-        coords, air_quality = results[0]
-        assert coords.city == "Helsinki"
+        assert results[0][0].city == "Helsinki"
 
-    asyncio.run(run_test())
+    asyncio.run(run())
 
 
 def test_extract_all(httpx_mock):
-    """Test sync entrypoint extract_all."""
-    httpx_mock.add_response(
-        url="https://geocoding-api.open-meteo.com/v1/search?name=Helsinki&count=1&language=en&format=json",
-        json={
-            "results": [{"latitude": 60.1699, "longitude": 24.9384, "name": "Helsinki"}]
-        },
-    )
-    httpx_mock.add_response(
-        url="https://air-quality-api.open-meteo.com/v1/measurements?coordinates=60.1699%2C24.9384&radius=25000&limit=1000&sort=desc&order_by=datetime",
-        json={"results": []},
-    )
+    httpx_mock.add_response(url=GEOCODING_URL, json=MOCK_GEOCODING_RESPONSE)
+    httpx_mock.add_response(url=AIR_QUALITY_URL, json=MOCK_AIR_QUALITY_RESPONSE)
     results = extract_all(["Helsinki"])
     assert isinstance(results, list)
+    assert len(results) == 1

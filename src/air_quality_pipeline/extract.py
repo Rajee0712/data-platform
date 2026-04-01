@@ -1,4 +1,4 @@
-"""Extract layer: fetch raw air quality data from OpenAQ API."""
+"""Extract layer: fetch raw air quality data from Open-Meteo API."""
 
 import asyncio
 from itertools import islice
@@ -8,7 +8,11 @@ from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from air_quality_pipeline.config import settings
-from air_quality_pipeline.models import CityCoordinates, RawAirQualityResponse
+from air_quality_pipeline.models import (
+    AIR_QUALITY_VARIABLES,
+    CityCoordinates,
+    RawAirQualityResponse,
+)
 
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 BATCH_SIZE = 10
@@ -48,18 +52,18 @@ async def fetch_coordinates_async(
 async def fetch_air_quality_async(
     coords: CityCoordinates, client: httpx.AsyncClient
 ) -> RawAirQualityResponse:
-    """Fetch air quality data for given coordinates."""
+    """Fetch hourly air quality data for given coordinates."""
     logger.debug(
         f"Fetching air quality for {coords.city} ({coords.latitude}, {coords.longitude})"
     )
     response = await client.get(
-        f"{settings.api_base_url}/measurements",
+        f"{settings.api_base_url}/air-quality",
         params={
-            "coordinates": f"{coords.latitude},{coords.longitude}",
-            "radius": 25000,  # 25km radius
-            "limit": 1000,
-            "sort": "desc",
-            "order_by": "datetime",
+            "latitude": coords.latitude,
+            "longitude": coords.longitude,
+            "hourly": ",".join(AIR_QUALITY_VARIABLES),
+            "forecast_days": 1,
+            "timezone": "auto",
         },
     )
     response.raise_for_status()

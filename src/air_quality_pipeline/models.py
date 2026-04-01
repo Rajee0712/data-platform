@@ -4,6 +4,14 @@ from datetime import UTC, date, datetime
 
 from pydantic import BaseModel, Field
 
+AIR_QUALITY_VARIABLES = [
+    "pm2_5",
+    "pm10",
+    "carbon_monoxide",
+    "nitrogen_dioxide",
+    "ozone",
+]
+
 
 class CityCoordinates(BaseModel):
     """Lat/lon for a city resolved before API call."""
@@ -14,23 +22,24 @@ class CityCoordinates(BaseModel):
 
 
 class RawAirQualityResponse(BaseModel):
-    """Raw response from OpenAQ API — mirrors their JSON structure."""
+    """Raw response from Open-Meteo air quality API."""
 
-    results: list[dict]
+    latitude: float
+    longitude: float
+    timezone: str
+    hourly_units: dict[str, str]
+    hourly: dict[str, list]
 
 
 class AirQualityRecord(BaseModel):
-    """A single cleaned, typed air quality measurement — one row in DuckDB."""
+    """A single cleaned hourly air quality observation — one row in DuckDB."""
 
     city: str
     timestamp: datetime
     date: date
-    parameter: str = Field(description="Pollutant parameter (pm25, pm10, no2, etc.)")
-    value: float = Field(description="Measured value")
-    unit: str = Field(description="Unit of measurement")
-    coordinates_latitude: float = Field(description="Measurement location latitude")
-    coordinates_longitude: float = Field(description="Measurement location longitude")
-    ingested_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        description="When this record was written to the DB",
-    )
+    pm2_5: float | None = None
+    pm10: float | None = None
+    carbon_monoxide: float | None = None
+    nitrogen_dioxide: float | None = None
+    ozone: float | None = None
+    ingested_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

@@ -17,8 +17,15 @@ fix:
 test:
 	uv run pytest
 
-run:
+run_weather:
 	uv run python -m weather_pipeline 2>&1
+
+run_air_quality:
+	uv run python -m air_quality_pipeline 2>&1
+
+run_all:
+	uv run python -m weather_pipeline 2>&1
+	uv run python -m air_quality_pipeline 2>&1
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
