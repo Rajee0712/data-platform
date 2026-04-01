@@ -1,28 +1,30 @@
 """Load layer: write WeatherRecords into DuckDB."""
 
-from pathlib import Path
-
 import duckdb
 from loguru import logger
 
+from shared.load_utils import get_connection
 from weather_pipeline.config import settings
 from weather_pipeline.models import WeatherRecord
 
-SCHEMA = "weather"
+# Field mapping from model attributes to database columns
+WEATHER_FIELD_MAPPING = {
+    "city": "city",
+    "timestamp": "timestamp",
+    "date": "date",
+    "temperature_c": "temperature_c",
+    "humidity_pct": "humidity_pct",
+    "windspeed_kmh": "windspeed_kmh",
+    "precipitation_mm": "precipitation_mm",
+    "ingested_at": "ingested_at",
+}
 
 
-def get_connection(db_path: str | None = None) -> duckdb.DuckDBPyConnection:
-    """Create a DuckDB connection, ensuring the parent directory exists."""
-    path = db_path or settings.db_path
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    return duckdb.connect(path)
-
-
-def create_table(conn: duckdb.DuckDBPyConnection) -> None:
+def create_schema_and_table(conn: duckdb.DuckDBPyConnection) -> None:
     """Create schema and weather_records table if they don't exist."""
-    conn.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
+    conn.execute(f"CREATE SCHEMA IF NOT EXISTS {settings.db_schema}")
     conn.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.weather_records (
+        CREATE TABLE IF NOT EXISTS {settings.db_schema}.weather_records (
             city                VARCHAR,
             timestamp           TIMESTAMP,
             date                DATE,
@@ -34,7 +36,7 @@ def create_table(conn: duckdb.DuckDBPyConnection) -> None:
             PRIMARY KEY (city, timestamp)
         )
     """)
-    logger.debug("Schema and table weather.weather_records ready")
+    logger.debug(f"Schema and table {settings.db_schema}.weather_records ready")
 
 
 def upsert_records(
@@ -47,35 +49,26 @@ def upsert_records(
         return 0
 
     rows = [
-        (
-            r.city,
-            r.timestamp,
-            r.date,
-            r.temperature_c,
-            r.humidity_pct,
-            r.windspeed_kmh,
-            r.precipitation_mm,
-            r.ingested_at,
-        )
-        for r in records
+        tuple(getattr(record, field) for field in WEATHER_FIELD_MAPPING)
+        for record in records
     ]
 
+    placeholders = ", ".join(["?" for _ in WEATHER_FIELD_MAPPING])
+    fields = ", ".join(WEATHER_FIELD_MAPPING.values())
+    table_name = f"{settings.db_schema}.weather_records"
+
     conn.executemany(
-        f"""
-        INSERT OR REPLACE INTO {SCHEMA}.weather_records
-            (city, timestamp, date, temperature_c, humidity_pct,
-             windspeed_kmh, precipitation_mm, ingested_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """,
+        f"INSERT OR REPLACE INTO {table_name} ({fields}) VALUES ({placeholders})",
         rows,
     )
 
-    logger.info(f"Loaded {len(rows)} records into {SCHEMA}.weather_records")
+    logger.info(f"Loaded {len(rows)} records into {table_name}")
     return len(rows)
 
 
 def load(records: list[WeatherRecord], db_path: str | None = None) -> int:
     """Main load entry point — create schema/table and upsert records."""
+    db_path = db_path or settings.db_path
     with get_connection(db_path) as conn:
-        create_table(conn)
+        create_schema_and_table(conn)
         return upsert_records(conn, records)

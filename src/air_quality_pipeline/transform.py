@@ -4,11 +4,8 @@ from datetime import datetime
 
 from loguru import logger
 
-from air_quality_pipeline.models import (
-    AirQualityRecord,
-    CityCoordinates,
-    RawAirQualityResponse,
-)
+from air_quality_pipeline.models import AirQualityRecord, RawAirQualityResponse
+from shared.models import CityCoordinates
 
 
 def parse_air_quality_records(

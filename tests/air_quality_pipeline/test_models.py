@@ -5,11 +5,8 @@ from datetime import UTC, date, datetime
 import pytest
 from pydantic import ValidationError
 
-from air_quality_pipeline.models import (
-    AirQualityRecord,
-    CityCoordinates,
-    RawAirQualityResponse,
-)
+from air_quality_pipeline.models import AirQualityRecord, RawAirQualityResponse
+from shared.models import CityCoordinates
 
 MOCK_RAW = RawAirQualityResponse(
     latitude=60.1699,
@@ -58,3 +55,27 @@ def test_air_quality_record():
 def test_air_quality_record_missing_field():
     with pytest.raises(ValidationError):
         AirQualityRecord(city="Helsinki")
+
+
+def test_raw_air_quality_response_get_data_field():
+    """Test get_data_field method returns correct field name."""
+    response = RawAirQualityResponse(
+        latitude=60.1699,
+        longitude=24.9384,
+        timezone="Europe/Helsinki",
+        hourly_units={"pm2_5": "μg/m³"},
+        hourly={"time": ["2024-01-01T00:00"]},
+    )
+    assert response.get_data_field() == "hourly"
+
+
+def test_air_quality_record_get_primary_key_fields():
+    """Test get_primary_key_fields method returns correct fields."""
+    dt = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    record = AirQualityRecord(
+        city="Helsinki",
+        timestamp=dt,
+        date=date(2024, 1, 1),
+        pm2_5=6.3,
+    )
+    assert record.get_primary_key_fields() == ["city", "timestamp"]

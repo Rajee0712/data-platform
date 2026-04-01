@@ -2,8 +2,9 @@
 
 from datetime import datetime
 
-from air_quality_pipeline.models import CityCoordinates, RawAirQualityResponse
+from air_quality_pipeline.models import RawAirQualityResponse
 from air_quality_pipeline.transform import parse_air_quality_records, transform_all
+from shared.models import CityCoordinates
 
 MOCK_COORDS = CityCoordinates(city="Helsinki", latitude=60.1699, longitude=24.9384)
 

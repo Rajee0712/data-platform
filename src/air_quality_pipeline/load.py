@@ -1,28 +1,31 @@
 """Load layer: write AirQualityRecords into DuckDB."""
 
-from pathlib import Path
-
 import duckdb
 from loguru import logger
 
 from air_quality_pipeline.config import settings
 from air_quality_pipeline.models import AirQualityRecord
+from shared.load_utils import get_connection
 
-SCHEMA = "air_quality"
+# Field mapping from model attributes to database columns
+AIR_QUALITY_FIELD_MAPPING = {
+    "city": "city",
+    "timestamp": "timestamp",
+    "date": "date",
+    "pm2_5": "pm2_5",
+    "pm10": "pm10",
+    "carbon_monoxide": "carbon_monoxide",
+    "nitrogen_dioxide": "nitrogen_dioxide",
+    "ozone": "ozone",
+    "ingested_at": "ingested_at",
+}
 
 
-def get_connection(db_path: str | None = None) -> duckdb.DuckDBPyConnection:
-    """Create a DuckDB connection, ensuring the parent directory exists."""
-    path = db_path or settings.db_path
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    return duckdb.connect(path)
-
-
-def create_table(conn: duckdb.DuckDBPyConnection) -> None:
+def create_schema_and_table(conn: duckdb.DuckDBPyConnection) -> None:
     """Create schema and air_quality_records table if they don't exist."""
-    conn.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
+    conn.execute(f"CREATE SCHEMA IF NOT EXISTS {settings.db_schema}")
     conn.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.air_quality_records (
+        CREATE TABLE IF NOT EXISTS {settings.db_schema}.air_quality_records (
             city                VARCHAR,
             timestamp           TIMESTAMP,
             date                DATE,
@@ -35,7 +38,7 @@ def create_table(conn: duckdb.DuckDBPyConnection) -> None:
             PRIMARY KEY (city, timestamp)
         )
     """)
-    logger.debug("Schema and table air_quality.air_quality_records ready")
+    logger.debug(f"Schema and table {settings.db_schema}.air_quality_records ready")
 
 
 def upsert_records(
@@ -48,36 +51,26 @@ def upsert_records(
         return 0
 
     rows = [
-        (
-            r.city,
-            r.timestamp,
-            r.date,
-            r.pm2_5,
-            r.pm10,
-            r.carbon_monoxide,
-            r.nitrogen_dioxide,
-            r.ozone,
-            r.ingested_at,
-        )
-        for r in records
+        tuple(getattr(record, field) for field in AIR_QUALITY_FIELD_MAPPING)
+        for record in records
     ]
 
+    placeholders = ", ".join(["?" for _ in AIR_QUALITY_FIELD_MAPPING])
+    fields = ", ".join(AIR_QUALITY_FIELD_MAPPING.values())
+    table_name = f"{settings.db_schema}.air_quality_records"
+
     conn.executemany(
-        f"""
-        INSERT OR REPLACE INTO {SCHEMA}.air_quality_records
-            (city, timestamp, date, pm2_5, pm10, carbon_monoxide,
-             nitrogen_dioxide, ozone, ingested_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """,
+        f"INSERT OR REPLACE INTO {table_name} ({fields}) VALUES ({placeholders})",
         rows,
     )
 
-    logger.info(f"Loaded {len(rows)} records into {SCHEMA}.air_quality_records")
+    logger.info(f"Loaded {len(rows)} records into {table_name}")
     return len(rows)
 
 
 def load(records: list[AirQualityRecord], db_path: str | None = None) -> int:
     """Main load entry point — create schema/table and upsert records."""
+    db_path = db_path or settings.db_path
     with get_connection(db_path) as conn:
-        create_table(conn)
+        create_schema_and_table(conn)
         return upsert_records(conn, records)

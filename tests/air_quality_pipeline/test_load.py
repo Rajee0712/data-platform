@@ -4,14 +4,15 @@ from datetime import UTC, date, datetime
 
 import pytest
 
-from air_quality_pipeline.load import create_table, get_connection, load, upsert_records
+from air_quality_pipeline.load import create_schema_and_table, load, upsert_records
 from air_quality_pipeline.models import AirQualityRecord
+from shared.load_utils import get_connection
 
 
 @pytest.fixture
 def conn():
     with get_connection(":memory:") as c:
-        create_table(c)
+        create_schema_and_table(c)
         yield c
 
 
@@ -41,7 +42,7 @@ def sample_records():
     ]
 
 
-def test_create_table(conn):
+def test_create_schema_and_table(conn):
     result = conn.execute(
         "SELECT table_name FROM information_schema.tables WHERE table_name='air_quality_records'"
     ).fetchone()

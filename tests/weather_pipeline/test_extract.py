@@ -5,15 +5,13 @@ import asyncio
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock
-from tenacity import RetryError
 
+from shared.extract_utils import extract_city_generic, fetch_coordinates_async
+from shared.models import CityCoordinates
 from weather_pipeline.extract import (
     extract_all,
-    extract_city_async,
-    fetch_coordinates_async,
     fetch_weather_async,
 )
-from weather_pipeline.models import CityCoordinates
 
 MOCK_GEOCODING_RESPONSE = {
     "results": [
@@ -65,13 +63,13 @@ def test_fetch_coordinates_async(httpx_mock: HTTPXMock):
 
 
 def test_fetch_coordinates_city_not_found(httpx_mock: HTTPXMock):
-    httpx_mock.add_response(json={"results": []}, is_reusable=True)
+    httpx_mock.add_response(json={"results": []})
 
     async def run():
         async with httpx.AsyncClient() as client:
             return await fetch_coordinates_async("FakeCity", client)
 
-    with pytest.raises(RetryError):
+    with pytest.raises(ValueError, match="City not found: FakeCity"):
         asyncio.run(run())
 
 
@@ -88,25 +86,29 @@ def test_fetch_weather_async(httpx_mock: HTTPXMock):
     assert len(weather.hourly["temperature_2m"]) == 2
 
 
-def test_extract_city_async_success(httpx_mock: HTTPXMock, semaphore):
+def test_extract_city_generic_success(httpx_mock: HTTPXMock, semaphore):
     httpx_mock.add_response(json=MOCK_GEOCODING_RESPONSE)
     httpx_mock.add_response(json=MOCK_WEATHER_RESPONSE)
 
     async def run():
         async with httpx.AsyncClient() as client:
-            return await extract_city_async("Helsinki", client, semaphore)
+            return await extract_city_generic(
+                "Helsinki", client, semaphore, fetch_weather_async
+            )
 
     coords, weather = asyncio.run(run())
     assert coords.city == "Helsinki"
     assert weather.timezone == "Europe/Helsinki"
 
 
-def test_extract_city_async_failure(httpx_mock: HTTPXMock, semaphore):
+def test_extract_city_generic_failure(httpx_mock: HTTPXMock, semaphore):
     httpx_mock.add_response(json={"results": []}, is_reusable=True)
 
     async def run():
         async with httpx.AsyncClient() as client:
-            return await extract_city_async("FakeCity", client, semaphore)
+            return await extract_city_generic(
+                "FakeCity", client, semaphore, fetch_weather_async
+            )
 
     result = asyncio.run(run())
     assert result is None
@@ -128,9 +130,7 @@ def test_extract_all_skips_failed_city(httpx_mock: HTTPXMock):
 
 @pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 def test_extract_all_partial_failure(httpx_mock: HTTPXMock):
-    # FakeCity fails — 3 retries
-    httpx_mock.add_response(json={"results": []})
-    httpx_mock.add_response(json={"results": []})
+    # FakeCity fails — no retries on ValueError
     httpx_mock.add_response(json={"results": []})
     # Helsinki succeeds
     httpx_mock.add_response(json=MOCK_GEOCODING_RESPONSE)

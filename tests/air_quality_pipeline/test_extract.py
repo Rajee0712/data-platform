@@ -4,17 +4,14 @@ import asyncio
 
 import httpx
 import pytest
-from tenacity import RetryError
 
 from air_quality_pipeline.extract import (
-    batched,
     extract_all,
     extract_all_async,
-    extract_city_async,
     fetch_air_quality_async,
-    fetch_coordinates_async,
 )
-from air_quality_pipeline.models import CityCoordinates
+from shared.extract_utils import batched, extract_city_generic, fetch_coordinates_async
+from shared.models import CityCoordinates
 
 MOCK_GEOCODING_RESPONSE = {
     "results": [{"latitude": 60.1699, "longitude": 24.9384, "name": "Helsinki"}]
@@ -63,12 +60,11 @@ def test_fetch_coordinates_async_not_found(httpx_mock):
     httpx_mock.add_response(
         url="https://geocoding-api.open-meteo.com/v1/search?name=NonExistentCity&count=1&language=en&format=json",
         json={"results": []},
-        is_reusable=True,
     )
 
     async def run():
         async with httpx.AsyncClient() as client:
-            with pytest.raises(RetryError):
+            with pytest.raises(ValueError, match="City not found: NonExistentCity"):
                 await fetch_coordinates_async("NonExistentCity", client)
 
     asyncio.run(run())
@@ -87,14 +83,16 @@ def test_fetch_air_quality_async(httpx_mock):
     asyncio.run(run())
 
 
-def test_extract_city_async_success(httpx_mock):
+def test_extract_city_generic_success(httpx_mock):
     httpx_mock.add_response(url=GEOCODING_URL, json=MOCK_GEOCODING_RESPONSE)
     httpx_mock.add_response(url=AIR_QUALITY_URL, json=MOCK_AIR_QUALITY_RESPONSE)
 
     async def run():
         async with httpx.AsyncClient() as client:
             semaphore = asyncio.Semaphore(1)
-            result = await extract_city_async("Helsinki", client, semaphore)
+            result = await extract_city_generic(
+                "Helsinki", client, semaphore, fetch_air_quality_async
+            )
             assert result is not None
             coords, air_quality = result
             assert coords.city == "Helsinki"
@@ -103,7 +101,7 @@ def test_extract_city_async_success(httpx_mock):
     asyncio.run(run())
 
 
-def test_extract_city_async_failure(httpx_mock):
+def test_extract_city_generic_failure(httpx_mock):
     httpx_mock.add_response(
         url="https://geocoding-api.open-meteo.com/v1/search?name=BadCity&count=1&language=en&format=json",
         json={"results": []},
@@ -113,18 +111,21 @@ def test_extract_city_async_failure(httpx_mock):
     async def run():
         async with httpx.AsyncClient() as client:
             semaphore = asyncio.Semaphore(1)
-            result = await extract_city_async("BadCity", client, semaphore)
+            result = await extract_city_generic(
+                "BadCity", client, semaphore, fetch_air_quality_async
+            )
             assert result is None
 
     asyncio.run(run())
 
 
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 def test_extract_all_async(httpx_mock):
     httpx_mock.add_response(url=GEOCODING_URL, json=MOCK_GEOCODING_RESPONSE)
     httpx_mock.add_response(url=AIR_QUALITY_URL, json=MOCK_AIR_QUALITY_RESPONSE)
 
     async def run():
-        results = await extract_all_async(["Helsinki"], batch_size=1)
+        results = await extract_all_async(["Helsinki"])
         assert len(results) == 1
         assert results[0][0].city == "Helsinki"
 

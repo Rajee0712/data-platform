@@ -7,7 +7,8 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from weather_pipeline.models import CityCoordinates, RawWeatherResponse, WeatherRecord
+from shared.models import CityCoordinates
+from weather_pipeline.models import RawWeatherResponse, WeatherRecord
 
 
 def test_weather_record_valid():
@@ -44,3 +45,29 @@ def test_raw_weather_response_valid():
         hourly={"temperature_2m": [1.0, 2.0]},
     )
     assert raw.timezone == "Europe/Helsinki"
+
+
+def test_raw_weather_response_get_data_field():
+    """Test get_data_field method returns correct field name."""
+    response = RawWeatherResponse(
+        latitude=61.48,
+        longitude=21.79,
+        timezone="Europe/Helsinki",
+        hourly_units={"temperature_2m": "°C"},
+        hourly={"temperature_2m": [1.0, 2.0]},
+    )
+    assert response.get_data_field() == "hourly"
+
+
+def test_weather_record_get_primary_key_fields():
+    """Test get_primary_key_fields method returns correct fields."""
+    record = WeatherRecord(
+        city="Helsinki",
+        timestamp=datetime(2024, 1, 15, 12, 0),
+        date=datetime(2024, 1, 15).date(),
+        temperature_c=-5.2,
+        humidity_pct=78.0,
+        windspeed_kmh=12.5,
+        precipitation_mm=0.0,
+    )
+    assert record.get_primary_key_fields() == ["city", "timestamp"]

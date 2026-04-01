@@ -8,6 +8,7 @@ def test_settings_defaults():
     settings = AirQualitySettings()
     assert settings.api_base_url == "https://air-quality-api.open-meteo.com/v1"
     assert settings.db_path == "data/platform.duckdb"
+    assert settings.db_schema == "air_quality"
     assert settings.log_level == "INFO"
     assert settings.city_scope == "finland"
 
@@ -28,7 +29,19 @@ def test_cities_list_property_other_scope(monkeypatch):
     def mock_get_cities(scope):
         return mock_cities
 
-    monkeypatch.setattr("air_quality_pipeline.config.get_cities", mock_get_cities)
+    monkeypatch.setattr("shared.config_base.get_cities", mock_get_cities)
 
     settings = AirQualitySettings(city_scope="nordic")
     assert settings.cities_list == mock_cities
+
+
+def test_db_path_property():
+    """Test db_path property returns correct path."""
+    settings = AirQualitySettings()
+    assert settings.db_path == "data/platform.duckdb"
+
+
+def test_api_base_url_property():
+    """Test api_base_url property returns correct URL."""
+    settings = AirQualitySettings()
+    assert settings.api_base_url == "https://air-quality-api.open-meteo.com/v1"

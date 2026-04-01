@@ -1,12 +1,12 @@
 """Configuration settings for the weather data application."""
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import SettingsConfigDict
 
-from shared.cities import FINNISH_CITIES, get_cities
+from shared.config_base import PipelineSettings
 
 
-class Settings(BaseSettings):
-    """Application configuration settings loaded from environment variables or .env file."""
+class WeatherSettings(PipelineSettings):
+    """Weather pipeline specific configuration settings."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -16,17 +16,18 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    cities: list[str] = FINNISH_CITIES
-    city_scope: str = "finland"
-    api_base_url: str = "https://api.open-meteo.com/v1"
-    db_path: str = "data/platform.duckdb"
-    log_level: str = "INFO"
+    @property
+    def api_base_url(self) -> str:
+        return "https://api.open-meteo.com/v1"
 
     @property
-    def cities_list(self) -> list[str]:
-        if self.city_scope != "finland":
-            return get_cities(self.city_scope)
-        return self.cities
+    def db_path(self) -> str:
+        return "data/platform.duckdb"
+
+    @property
+    def db_schema(self) -> str:
+        return "weather"
 
 
-settings = Settings()
+# single shared instance — import this everywhere
+settings = WeatherSettings()

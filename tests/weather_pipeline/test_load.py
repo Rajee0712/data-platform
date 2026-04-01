@@ -4,7 +4,8 @@ from datetime import datetime
 
 import pytest
 
-from weather_pipeline.load import create_table, get_connection, load, upsert_records
+from shared.load_utils import get_connection
+from weather_pipeline.load import create_schema_and_table, load, upsert_records
 from weather_pipeline.models import WeatherRecord
 
 
@@ -12,7 +13,7 @@ from weather_pipeline.models import WeatherRecord
 def conn():
     """In-memory DuckDB connection for tests — no files created."""
     with get_connection(":memory:") as c:
-        create_table(c)
+        create_schema_and_table(c)
         yield c
 
 
@@ -40,7 +41,7 @@ def sample_records():
     ]
 
 
-def test_create_table(conn):
+def test_create_schema_and_table(conn):
     result = conn.execute(
         "SELECT table_name FROM information_schema.tables WHERE table_name='weather_records'"
     ).fetchone()
