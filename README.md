@@ -147,6 +147,9 @@ uv add --dev <package>        # dev only
 # always commit pyproject.toml and uv.lock together
 ```
 
+## Changelog
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
 ## Future Roadmap
 
 ### Data Quality
