@@ -35,11 +35,11 @@ select = ["E", "W", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["weather_pipeline"]
+known-first-party = ["weather_pipeline", "air_quality_pipeline"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=weather_pipeline --cov-report=term-missing --cov-report=xml"
+addopts = "--cov=weather_pipeline --cov=air_quality_pipeline --cov-report=term-missing --cov-report=xml"
 pythonpath = ["src"]
 
 [tool.coverage.run]
@@ -57,3 +57,4 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 weather-pipeline = "weather_pipeline.pipeline:main"
+air-quality-pipeline = "air_quality_pipeline.pipeline:main"

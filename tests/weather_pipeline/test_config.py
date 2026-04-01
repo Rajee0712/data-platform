@@ -16,7 +16,7 @@ def test_default_api_url():
 
 
 def test_cities_from_env(monkeypatch):
-    monkeypatch.setenv("CITIES", '["Oslo","Berlin"]')
+    monkeypatch.setenv("WEATHER_CITIES", '["Oslo","Berlin"]')
     s = Settings()
     assert s.cities == ["Oslo", "Berlin"]
 
@@ -37,13 +37,13 @@ def test_cities_list_uses_finnish_by_default():
 
 
 def test_cities_list_uses_scope(monkeypatch):
-    monkeypatch.setenv("CITY_SCOPE", "nordic")
+    monkeypatch.setenv("WEATHER_CITY_SCOPE", "nordic")
     s = Settings()
     assert s.cities_list == get_cities("nordic")
 
 
 def test_cities_list_finland_scope(monkeypatch):
-    monkeypatch.setenv("CITY_SCOPE", "finland")
+    monkeypatch.setenv("WEATHER_CITY_SCOPE", "finland")
     s = Settings()
     assert "Helsinki" in s.cities_list
 

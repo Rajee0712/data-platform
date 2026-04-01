@@ -50,7 +50,7 @@ def test_create_table(conn):
 def test_upsert_records(conn, sample_records):
     count = upsert_records(conn, sample_records)
     assert count == 2
-    rows = conn.execute("SELECT * FROM weather_records").fetchall()
+    rows = conn.execute("SELECT * FROM weather.weather_records").fetchall()
     assert len(rows) == 2
 
 
@@ -63,7 +63,7 @@ def test_upsert_deduplicates(conn, sample_records):
     """Inserting same records twice should not duplicate rows."""
     upsert_records(conn, sample_records)
     upsert_records(conn, sample_records)
-    rows = conn.execute("SELECT * FROM weather_records").fetchall()
+    rows = conn.execute("SELECT * FROM weather.weather_records").fetchall()
     assert len(rows) == 2  # still 2, not 4
 
 
