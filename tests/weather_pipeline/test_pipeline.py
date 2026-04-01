@@ -49,3 +49,21 @@ def test_main_empty_results(mock_load, mock_transform, mock_extract):
     main()  # should not raise
 
     mock_load.assert_called_once_with([])
+
+
+def test_main_module_entrypoint():
+    """Test __main__.py is importable and calls main."""
+    with (
+        patch("weather_pipeline.pipeline.extract_all") as mock_extract,
+        patch("weather_pipeline.pipeline.transform_all") as mock_transform,
+        patch("weather_pipeline.pipeline.load") as mock_load,
+    ):
+        mock_extract.return_value = []
+        mock_transform.return_value = []
+        mock_load.return_value = 0
+        import runpy
+        import sys
+
+        sys.modules.pop("weather_pipeline.__main__", None)
+        runpy.run_module("weather_pipeline", run_name="__main__")
+        mock_extract.assert_called_once()

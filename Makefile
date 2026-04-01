@@ -18,7 +18,7 @@ test:
 	uv run pytest
 
 run:
-	uv run python -m weather_pipeline.pipeline
+	uv run python -m weather_pipeline 2>&1
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
