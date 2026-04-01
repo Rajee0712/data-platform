@@ -13,6 +13,10 @@ dependencies = [
     "tenacity>=9.1.4",
 ]
 
+[project.urls]
+repository = "https://github.com/Rajee0712/data-platform"
+issues = "https://github.com/Rajee0712/data-platform/issues"
+
 [dependency-groups]
 dev = [
     "pre-commit>=4.5.1",

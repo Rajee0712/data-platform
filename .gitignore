@@ -12,3 +12,4 @@ wheels/
 data/
 *.duckdb
 .vscode/
+.coverage
