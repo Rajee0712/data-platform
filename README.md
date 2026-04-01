@@ -19,6 +19,19 @@ A production-grade ELT pipeline that fetches hourly weather data from the
 - **Load** — DuckDB with idempotent upserts
 - **Packaging** — uv, ruff, pytest, pre-commit, GitHub Actions, Docker
 
+## Architecture
+```
+Open-Meteo API
+      ↓
+  extract.py      ← httpx + tenacity retries
+      ↓
+ transform.py     ← Pydantic validation + typing
+      ↓
+   load.py        ← DuckDB idempotent upserts
+      ↓
+ weather.duckdb
+```
+
 ## Project Structure
 ```
 weather-pipeline/
