@@ -16,3 +16,12 @@ repos:
       - id: debug-statements
       - id: no-commit-to-branch
         args: [--branch, main]
+
+  - repo: local
+    hooks:
+      - id: claude-review
+        name: Claude Code Review
+        entry: claude -p "Review this diff for bugs, code quality issues and suggest improvements. Be concise."
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
