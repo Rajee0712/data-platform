@@ -46,8 +46,11 @@ jobs:
 
       - name: Sync README to Wiki
         if: github.ref == 'refs/heads/main'
-        uses: Andrew-Chen-Wang/github-wiki-action@v4
-        env:
-            WIKI_DIR: wiki/
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            GH_NAME: Rajee0712
+        run: |
+            git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Rajee0712/data-platform.wiki.git wiki
+            cp README.md wiki/Home.md
+            cd wiki
+            git config user.name "Rajee0712"
+            git add Home.md
+            git diff --staged --quiet || git commit -m "sync README to wiki"
+            git push
