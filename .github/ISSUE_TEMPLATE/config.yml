@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a Question
+    url: https://github.com/Rajee0712/data-platform/discussions
+    about: Use GitHub Discussions for questions
+  - name: 📖 Documentation
+    url: https://github.com/Rajee0712/data-platform/wiki
+    about: Check the docs first before opening an issue
