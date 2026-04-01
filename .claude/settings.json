@@ -1,0 +1,8 @@
+{
+    "model": "claude-sonnet-4-20250514",
+    "context_window": "auto",
+    "permissions": {
+      "allow_file_write": true,
+      "allow_terminal": true
+    }
+  }

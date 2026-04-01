@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from weather_pipeline.models import CityCoordinates, RawWeatherResponse
+from shared.models import CityCoordinates
+from weather_pipeline.models import RawWeatherResponse
 from weather_pipeline.transform import parse_hourly_records, transform_all
 
 MOCK_COORDS = CityCoordinates(city="Helsinki", latitude=60.16952, longitude=24.93545)

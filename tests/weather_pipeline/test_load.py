@@ -4,7 +4,8 @@ from datetime import datetime
 
 import pytest
 
-from weather_pipeline.load import create_table, get_connection, load, upsert_records
+from shared.load_utils import get_connection
+from weather_pipeline.load import create_schema_and_table, load, upsert_records
 from weather_pipeline.models import WeatherRecord
 
 
@@ -12,7 +13,7 @@ from weather_pipeline.models import WeatherRecord
 def conn():
     """In-memory DuckDB connection for tests — no files created."""
     with get_connection(":memory:") as c:
-        create_table(c)
+        create_schema_and_table(c)
         yield c
 
 
@@ -40,7 +41,7 @@ def sample_records():
     ]
 
 
-def test_create_table(conn):
+def test_create_schema_and_table(conn):
     result = conn.execute(
         "SELECT table_name FROM information_schema.tables WHERE table_name='weather_records'"
     ).fetchone()
@@ -50,7 +51,7 @@ def test_create_table(conn):
 def test_upsert_records(conn, sample_records):
     count = upsert_records(conn, sample_records)
     assert count == 2
-    rows = conn.execute("SELECT * FROM weather_records").fetchall()
+    rows = conn.execute("SELECT * FROM weather.weather_records").fetchall()
     assert len(rows) == 2
 
 
@@ -63,7 +64,7 @@ def test_upsert_deduplicates(conn, sample_records):
     """Inserting same records twice should not duplicate rows."""
     upsert_records(conn, sample_records)
     upsert_records(conn, sample_records)
-    rows = conn.execute("SELECT * FROM weather_records").fetchall()
+    rows = conn.execute("SELECT * FROM weather.weather_records").fetchall()
     assert len(rows) == 2  # still 2, not 4
 
 

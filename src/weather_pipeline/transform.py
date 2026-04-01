@@ -4,7 +4,8 @@ from datetime import datetime
 
 from loguru import logger
 
-from weather_pipeline.models import CityCoordinates, RawWeatherResponse, WeatherRecord
+from shared.models import CityCoordinates
+from weather_pipeline.models import RawWeatherResponse, WeatherRecord
 
 
 def parse_hourly_records(

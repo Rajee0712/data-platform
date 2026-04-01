@@ -13,3 +13,4 @@ data/
 *.duckdb
 .vscode/
 .coverage
+coverage.xml

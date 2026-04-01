@@ -1,24 +1,24 @@
-"""Configuration settings for the weather data application."""
+"""Configuration settings for the air quality data application."""
 
 from pydantic_settings import SettingsConfigDict
 
 from shared.config_base import PipelineSettings
 
 
-class WeatherSettings(PipelineSettings):
-    """Weather pipeline specific configuration settings."""
+class AirQualitySettings(PipelineSettings):
+    """Air quality pipeline specific configuration settings."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         env_ignore_empty=True,
-        env_prefix="WEATHER_",
+        env_prefix="AIR_QUALITY_",
         extra="ignore",
     )
 
     @property
     def api_base_url(self) -> str:
-        return "https://api.open-meteo.com/v1"
+        return "https://air-quality-api.open-meteo.com/v1"
 
     @property
     def db_path(self) -> str:
@@ -26,8 +26,8 @@ class WeatherSettings(PipelineSettings):
 
     @property
     def db_schema(self) -> str:
-        return "weather"
+        return "air_quality"
 
 
 # single shared instance — import this everywhere
-settings = WeatherSettings()
+settings = AirQualitySettings()

@@ -9,13 +9,19 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies only (no dev deps in production)
-RUN uv sync --no-dev --frozen
+RUN uv sync --no-dev --frozen --no-install-project
 
 # Copy application code
-COPY weather_pipeline/ ./weather_pipeline/
+COPY src/ ./src/
+
+# Install project
+RUN uv pip install -e .
 
 # Mount data to local directory
 VOLUME /app/data
 
-# Run the pipeline
-CMD ["uv", "run", "python", "-m", "weather_pipeline.pipeline"]
+# Set environment variable for which pipeline to run (default: weather)
+ENV PIPELINE=weather_pipeline
+
+# Run the specified pipeline
+CMD ["sh", "-c", "uv run python -m $PIPELINE"]
