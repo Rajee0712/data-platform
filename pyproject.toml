@@ -6,8 +6,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "duckdb>=1.5.1",
+    "great-expectations>=1.15.2",
     "httpx>=0.28.1",
     "loguru>=0.7.3",
+    "numpy>=2.4.4",
+    "pandas>=3.0.2",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.3",
     "tenacity>=9.1.4",
@@ -43,7 +46,10 @@ addopts = "--cov=weather_pipeline --cov=air_quality_pipeline --cov-report=term-m
 pythonpath = ["src"]
 
 [tool.coverage.run]
-omit = ["tests/*"]
+omit = ["tests/*",
+        "src/*/validate.py",
+        "src/shared/expectations/*",
+        ]
 
 [tool.uv]
 package = true

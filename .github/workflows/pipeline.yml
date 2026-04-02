@@ -1,0 +1,55 @@
+name: Pipeline
+
+on:
+  schedule:
+    - cron: "0 6 * * *"     # runs daily at 6am UTC
+  workflow_dispatch:                       # allows manual trigger from GitHub UI
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  run-pipelines:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run weather pipeline
+        run: uv run python -m weather_pipeline 2>&1
+
+      - name: Run air quality pipeline
+        run: uv run python -m air_quality_pipeline 2>&1
+
+      - name: Generate validation report
+        run: uv run python -m shared.expectations.report
+
+      - name: Deploy validation report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/validation
+          destination_dir: validation
+
+
+## The roadmap when you add Airflow:
+
+# Now:
+# GitHub Actions scheduled → runs pipelines daily
+
+# Future:
+# Airflow DAG → runs pipelines on schedule
+#            → handles retries, backfill, dependencies
+#            → triggers report generation
+#            → GitHub Actions only does CI

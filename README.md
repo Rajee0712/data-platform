@@ -12,6 +12,14 @@
 A production-grade data platform with multiple ELT pipelines that fetch data from
 various APIs and load it into DuckDB for cross-source analysis.
 
+## Validation Report
+
+Data quality is validated using [Great Expectations](https://greatexpectations.io/) after every pipeline run.
+
+[![Validation Report](https://img.shields.io/badge/Validation-Report-blue)](https://rajee0712.github.io/data-platform/validation/)
+
+To generate the report locally run `make run_all && make report`
+
 ## Available Pipelines
 
 ### Weather Pipeline
@@ -86,6 +94,37 @@ data-platform/
 ├── Makefile
 └── pyproject.toml
 ```
+
+---
+
+## Great Expectations — Overview
+
+```
+extract → transform → load → DuckDB
+                                ↓
+                    Great Expectations validates
+                    the data already in DuckDB
+```
+
+**What is validate:**
+- No null cities
+- Temperature within realistic range (-60°C to +60°C)
+- Humidity between 0-100%
+- PM2.5 values non-negative
+- Row counts per city are as expected
+- No duplicate `(city, timestamp)` rows
+
+**Where GE code lives:**
+```
+src/
+├── shared/
+│   └── expectations/          ← shared GE context
+├── weather_pipeline/
+│   └── validate.py            ← weather-specific expectations
+└── air_quality_pipeline/
+    └── validate.py            ← air quality-specific expectations
+```
+
 
 ## Getting Started
 
