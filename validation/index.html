@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Platform — Validation Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1000px; margin: 40px auto; padding: 0 20px; color: #333; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+        .timestamp { color: #666; font-size: 0.9em; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #1a1a2e; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        .pipeline-row td { background: #f0f4f8; font-size: 1.05em; border-top: 2px solid #1a1a2e; }
+        .pipeline-row:hover td { background: #e2e8f0; }
+        .expectation-row td { font-size: 0.9em; padding-left: 24px; }
+        .exp-col { font-size: 0.85em; }
+        .exp-detail { color: #666; }
+        code { background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 0.85em; }
+        .pass { color: #4CAF50; font-weight: bold; }
+        .fail { color: #f44336; font-weight: bold; }
+    </style>
+    <script>
+        function toggle(id) {
+            const row = document.getElementById(id);
+            row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+        }
+    </script>
+</head>
+<body>
+    <h1>🌍 Data Platform — Validation Report</h1>
+    <p class="timestamp">Generated: 2026-04-02 08:38:54 UTC</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Pipeline</th>
+                <th>Status</th>
+                <th>Expectations</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        <tr class="pipeline-row" onclick="toggle('air_quality_validation_results')" style="cursor:pointer;">
+            <td><strong>▶ Air Quality Validation</strong></td>
+            <td class="pass">✅ Passed</td>
+            <td>7/7 <span style="color:#999; font-size:0.8em">(click to expand)</span></td>
+        </tr>
+        <tr id="air_quality_validation_results" class="detail-section" style="display:none;">
+            <td colspan="3" style="padding:0;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#2d3748; color:white;">
+                            <th style="padding:8px 24px;">Expectation</th>
+                            <th style="padding:8px;">Status</th>
+                            <th style="padding:8px;">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Not Be Null</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>city</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be In Set</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>city</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Not Be Null</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>timestamp</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>pm2_5</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>pm10</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>ozone</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Compound Columns To Be Unique</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>['city', 'timestamp']</code> — 0 unexpected</td>
+                </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr class="pipeline-row" onclick="toggle('weather_validation_results')" style="cursor:pointer;">
+            <td><strong>▶ Weather Validation</strong></td>
+            <td class="pass">✅ Passed</td>
+            <td>9/9 <span style="color:#999; font-size:0.8em">(click to expand)</span></td>
+        </tr>
+        <tr id="weather_validation_results" class="detail-section" style="display:none;">
+            <td colspan="3" style="padding:0;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#2d3748; color:white;">
+                            <th style="padding:8px 24px;">Expectation</th>
+                            <th style="padding:8px;">Status</th>
+                            <th style="padding:8px;">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Not Be Null</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>city</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be In Set</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>city</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Not Be Null</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>timestamp</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Not Be Null</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>temperature_c</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>temperature_c</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>humidity_pct</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>windspeed_kmh</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Column Values To Be Between</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>precipitation_mm</code> — 0 unexpected</td>
+                </tr>
+                <tr class="expectation-row">
+                    <td class="exp-name">✅ Compound Columns To Be Unique</td>
+                    <td class="pass exp-col">Passed</td>
+                    <td class="exp-detail">column: <code>['city', 'timestamp']</code> — 0 unexpected</td>
+                </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</body>
+</html>
