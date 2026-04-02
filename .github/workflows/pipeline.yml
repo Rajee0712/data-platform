@@ -35,12 +35,13 @@ jobs:
       - name: Generate validation report
         run: uv run python -m shared.expectations.report
 
-      - name: Deploy validation report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/validation
-          destination_dir: validation
+      - name: Commit validation report to main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "Rajee0712"
+          git add docs/
+          git diff --staged --quiet || git commit -m "ci: update validation report"
+          git push
 
 
 ## The roadmap when you add Airflow:
