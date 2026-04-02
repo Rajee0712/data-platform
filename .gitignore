@@ -14,3 +14,5 @@ data/
 .vscode/
 .coverage
 coverage.xml
+data/validation/
+docs/

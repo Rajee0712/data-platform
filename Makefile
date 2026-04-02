@@ -27,6 +27,10 @@ run_all:
 	uv run python -m weather_pipeline 2>&1
 	uv run python -m air_quality_pipeline 2>&1
 
+report:
+	uv run python -m shared.expectations.report
+	open docs/validation/index.html
+
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type d -name .pytest_cache -exec rm -rf {} +

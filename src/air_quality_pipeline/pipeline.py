@@ -1,11 +1,12 @@
-"""Main pipeline orchestrator: Extract → Transform → Load."""
+"""Main pipeline orchestrator: Extract → Transform → Load → Validate."""
 
 from loguru import logger
 
 from air_quality_pipeline.config import settings
 from air_quality_pipeline.extract import extract_all
-from air_quality_pipeline.load import load
+from air_quality_pipeline.load import get_connection, load
 from air_quality_pipeline.transform import transform_all
+from air_quality_pipeline.validate import validate_air_quality_data
 
 
 def main() -> None:
@@ -17,3 +18,6 @@ def main() -> None:
     count = load(records)
 
     logger.info(f"Pipeline complete — {count} records loaded")
+
+    with get_connection(settings.db_path) as conn:
+        validate_air_quality_data(conn)
