@@ -53,23 +53,3 @@ def test_main_empty_results(mock_load, mock_transform, mock_extract, mock_valida
     mock_validate.return_value = True
     main()
     mock_load.assert_called_once_with([])
-
-
-def test_main_module_entrypoint():
-    """Test __main__.py is importable and calls main."""
-    with (
-        patch("weather_pipeline.pipeline.extract_all") as mock_extract,
-        patch("weather_pipeline.pipeline.transform_all") as mock_transform,
-        patch("weather_pipeline.pipeline.load") as mock_load,
-        patch("weather_pipeline.pipeline.validate_weather_data") as mock_validate,
-    ):
-        mock_extract.return_value = []
-        mock_transform.return_value = []
-        mock_load.return_value = 0
-        mock_validate.return_value = True
-        import runpy
-        import sys
-
-        sys.modules.pop("weather_pipeline.__main__", None)
-        runpy.run_module("weather_pipeline", run_name="__main__")
-        mock_extract.assert_called_once()

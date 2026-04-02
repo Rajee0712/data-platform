@@ -21,3 +21,7 @@ def main() -> None:
 
     with get_connection(settings.db_path) as conn:
         validate_air_quality_data(conn)
+
+
+if __name__ == "__main__":
+    main()
