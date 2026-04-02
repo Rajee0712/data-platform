@@ -18,14 +18,14 @@ test:
 	uv run pytest
 
 run_weather:
-	uv run python -m weather_pipeline 2>&1
+	uv run python -m weather_pipeline.pipeline 2>&1
 
 run_air_quality:
-	uv run python -m air_quality_pipeline 2>&1
+	uv run python -m air_quality_pipeline.pipeline 2>&1
 
 run_all:
-	uv run python -m weather_pipeline 2>&1
-	uv run python -m air_quality_pipeline 2>&1
+	uv run python -m weather_pipeline.pipeline 2>&1
+	uv run python -m air_quality_pipeline.pipeline 2>&1
 
 report:
 	uv run python -m shared.expectations.report
