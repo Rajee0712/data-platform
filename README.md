@@ -44,6 +44,7 @@ air-quality-pipeline
 - **Extract** — Multiple Open-Meteo APIs (Weather, Air Quality) via httpx + tenacity retries
 - **Transform** — Pydantic models for typed, validated records
 - **Load** — DuckDB with idempotent upserts
+- **Validate** — Great Expectations for automated data quality checks
 - **Shared** — Common utilities for extraction, loading, and configuration
 - **Packaging** — uv, ruff, pytest, pre-commit, GitHub Actions, Docker
 
@@ -62,6 +63,11 @@ Open-Meteo Weather API    Open-Meteo Air Quality API
       └─────────────── platform.duckdb ──────────────┘
                      (multiple schemas:
                       weather, air_quality)
+                              ↓
+                    Great Expectations validation
+                         (validate.py)
+                              ↓
+                       HTML validation report
 ```
 
 ## Project Structure
@@ -149,14 +155,16 @@ CITIES=["Helsinki","Tampere","Pori","Turku","Oulu","Rovaniemi","Jyväskylä","Es
 
 ### Run the Pipelines
 ```bash
-# Run weather pipeline
-make run
+# Run individual pipelines
+make run_weather                    # weather pipeline only
+make run_air_quality               # air quality pipeline only
 
-# Run air quality pipeline
+# Run both pipelines + generate validation report
+make run_all && make report        # recommended: runs both + opens validation report
+
+# Legacy commands (still work)
+python -m weather_pipeline
 python -m air_quality_pipeline
-
-# Run both pipelines
-make run && python -m air_quality_pipeline
 ```
 
 ### Query the Data
@@ -206,11 +214,11 @@ rows = conn.execute('''
         w.city,
         w.date,
         AVG(w.temperature_c) as avg_temp,
-        AVG(aq.value) as avg_pm25
+        AVG(aq.pm2_5) as avg_pm25
     FROM weather.weather_records w
     JOIN air_quality.air_quality_records aq
         ON w.city = aq.city AND w.date = aq.date
-    WHERE aq.parameter = 'pm25'
+    WHERE aq.pm2_5 IS NOT NULL
     GROUP BY w.city, w.date
     ORDER BY w.city, w.date
 ''').fetchall()
@@ -289,6 +297,15 @@ make format
 make fix
 ```
 
+### Data Validation
+```bash
+# Run validation on existing data
+make report
+
+# Full pipeline + validation workflow
+make run_all && make report
+```
+
 ### Add a Dependency
 ```bash
 uv add <package>              # runtime
@@ -302,7 +319,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 ## Future Roadmap
 
 ### Data Quality
-- [ ] Great Expectations / Soda Core data quality checks
+- [x] Great Expectations data quality checks with automated HTML reports ✅
 - [ ] Schema validation on raw API responses
 - [ ] Alerting on missing or anomalous data
 
