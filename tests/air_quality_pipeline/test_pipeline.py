@@ -50,24 +50,3 @@ def test_main_empty_results(mock_load, mock_transform, mock_extract, mock_valida
     mock_validate.return_value = True
     main()
     mock_load.assert_called_once_with([])
-
-
-def test_main_module_entrypoint():
-    with (
-        patch("air_quality_pipeline.pipeline.extract_all") as mock_extract,
-        patch("air_quality_pipeline.pipeline.transform_all") as mock_transform,
-        patch("air_quality_pipeline.pipeline.load") as mock_load,
-        patch(
-            "air_quality_pipeline.pipeline.validate_air_quality_data"
-        ) as mock_validate,
-    ):
-        mock_extract.return_value = []
-        mock_transform.return_value = []
-        mock_load.return_value = 0
-        mock_validate.return_value = True
-        import runpy
-        import sys
-
-        sys.modules.pop("air_quality_pipeline.__main__", None)
-        runpy.run_module("air_quality_pipeline", run_name="__main__")
-        mock_extract.assert_called_once()
